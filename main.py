@@ -45,8 +45,7 @@ def get_token():
     # followers:
     # genres:
     # href:
-    # iamges:
-      
+    # iamges:   
 def get_artist_JSON(token, artist_name):
     url = 'https://api.spotify.com/v1/search'
     header = {
@@ -68,6 +67,9 @@ def get_artist_id(token, artist_name):
     artist_data = get_artist_JSON(token, artist_name)
     return artist_data[0]['id']  
 
+# @Returns a dictionary of the artist's discography with each album having 
+    # Album Name
+    # Release Date ... etc
 def get_artist_descography(token, artist_name):
     artist_id = get_artist_id(token, artist_name)
     #some kind of error handling here
@@ -84,9 +86,7 @@ def get_artist_descography(token, artist_name):
     if res.status_code == 200:
         albums = res.json()['items']
         for album in albums:
-            print(f"Album Name: {album['name']}, Release Date: {album['release_date']},")
-        return album['name']
+            return albums
     
-
 token = get_token()
 MNM = get_artist_descography(token, "Eminem")
