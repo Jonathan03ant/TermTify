@@ -1,6 +1,6 @@
 import argparse
 
-from TermTify import get_token, get_artist_JSON, get_artist_id, get_artist_descography
+from main import get_token, get_artist_JSON, get_artist_id, get_artist_descography
 
 def main():
     parser = argparse.ArgumentParser(
@@ -24,3 +24,15 @@ def main():
             token = get_token()
             # @Returns a dictionary of the artists discography
             albums = get_artist_descography(token, arguments.artist_name)
+            
+            for album in albums:
+                print(f"Album Namee: {album['name']} | Release Date: {album['release_date']}")
+        elif arguments.explanation == "Recently_Played" or arguments.explanation == "rp":
+            pass
+        else:
+            parser.error("Invalid Explanation")
+    else:
+        parser.print_help()
+        
+if __name__ == "__main__":
+    main()
