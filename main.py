@@ -48,17 +48,13 @@ def get_artist_JSON(token, artist_name):
     
     res = requests.get(url, headers=header, params=params)
     if res.status_code == 200:
-        print("Good")
-    else:
-        print(f"Error: {res.status_code}")
-        
-        
-token = get_token()
-artist_name = "Kanye West"
-get_artist_JSON(token, artist_name)
+        return res.json()['artists']['items'] 
     
     
     
     
 
-    
+token = get_token()
+artist_data = get_artist_JSON(token, "Kanye West")
+id = artist_data[0]['name']
+print(id)
