@@ -35,9 +35,27 @@ def get_token():
     return token
 
 
-
+def get_artist_JSON(token, artist_name):
+    url = 'https://api.spotify.com/v1/search'
+    header = {
+        "Authorization": f"Bearer {token}"
+    }
+    params = {
+        "q": artist_name,
+        "type": "artist",
+        "limit": 5
+    }
+    
+    res = requests.get(url, headers=header, params=params)
+    if res.status_code == 200:
+        print("Good")
+    else:
+        print(f"Error: {res.status_code}")
+        
+        
 token = get_token()
-print(token)
+artist_name = "Kanye West"
+get_artist_JSON(token, artist_name)
     
     
     
