@@ -1,8 +1,9 @@
 import argparse
 
-from main import get_token, get_artist_JSON, get_artist_id, get_artist_descography
+from main import get_token, get_artist_JSON, get_artist_id, get_artist_descography, get_artist_top_tracks
 
 def main():
+    token = get_token()
     parser = argparse.ArgumentParser(
         prog="Tmfy",
         description="Get an artist's discography",
@@ -21,13 +22,19 @@ def main():
     
     if arguments.action == "search" or arguments.action == "sc":
         if arguments.explanation == "Albums" or arguments.explanation == "dsc":
-            token = get_token()
             # @Returns a dictionary of the artists discography
             albums = get_artist_descography(token, arguments.artist_name)
             
             for album in albums:
                 print(f"Album Namee: {album['name']} | Release Date: {album['release_date']}")
         elif arguments.explanation == "Recently_Played" or arguments.explanation == "rp":
+            pass
+        elif arguments.explanation == "Top" or arguments.explanation == "tt":
+            top_track = get_artist_top_tracks(token, arguments.artist_name)
+            
+            for track in top_track:
+                print(f"Track Name: {track['name']} | Artist: {track['artists'][0]['name']} | Album: {track['album']['name']} ")
+        elif arguments.explanation == "latest" or arguments.explanation == "lts":
             pass
         else:
             parser.error("Invalid Explanation")
