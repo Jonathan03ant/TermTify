@@ -67,9 +67,10 @@ def get_artist_id(token, artist_name):
     artist_data = get_artist_JSON(token, artist_name)
     return artist_data[0]['id']  
 
+
 # @Returns a dictionary of the artist's discography with each album having 
     # Album Name
-    # Release Date ... etc
+    # Release Date ... etc https://developer.spotify.com/documentation/web-api/reference/get-an-artists-albums
 def get_artist_descography(token, artist_name):
     artist_id = get_artist_id(token, artist_name)
     #some kind of error handling here
@@ -85,8 +86,28 @@ def get_artist_descography(token, artist_name):
     res = requests.get(url, headers=headers, params=params)
     if res.status_code == 200:
         albums = res.json()['items']
-        for album in albums:
-            return albums
+        return albums
+    else:
+        return res.status_code
+        
+        
+# @Returns a dictionary of the artist's top tracks wtth each track having
+    #  Track name, Alum they are in, Artist
+    #  id, popularity, type, uri, external_urls, href, iamges
+    #  ... https://developer.spotify.com/documentation/web-api/reference/get-an-artists-top-tracks
+def get_artist_top_tracks(token, artist_name):
+    artist_id = get_artist_id(token, artist_name)
+    url = f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks"
+    header = {
+        "Authorization": f"Bearer {token}"
+    }
     
-token = get_token()
-MNM = get_artist_descography(token, "Eminem")
+    res = requests.get(url, headers=header)
+    if res.status_code == 200:
+        top_tracks = res.json()['tracks']
+        return top_tracks
+    else:
+        return res.status_code
+        
+
+
