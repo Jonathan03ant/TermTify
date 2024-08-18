@@ -35,6 +35,18 @@ def get_token():
     return token
 
 
+# @Returns a JSON object of the artist data
+    # id:
+    # name:
+    # popularity:
+    # type:
+    # uri:
+    # external_urls:
+    # followers:
+    # genres:
+    # href:
+    # iamges:
+      
 def get_artist_JSON(token, artist_name):
     url = 'https://api.spotify.com/v1/search'
     header = {
@@ -48,13 +60,33 @@ def get_artist_JSON(token, artist_name):
     
     res = requests.get(url, headers=header, params=params)
     if res.status_code == 200:
+        #print(f"Artist Name: {res.json()['artists']['items'][0]['name']}, Popularity: {res.json()['artists']['items'][0]['popularity']}, Genres: {res.json()['artists']['items'][0]['genres']}")
         return res.json()['artists']['items'] 
     
     
+def get_artist_id(token, artist_name):
+    artist_data = get_artist_JSON(token, artist_name)
+    return artist_data[0]['id']  
+
+def get_artist_descography(token, artist_name):
+    artist_id = get_artist_id(token, artist_name)
+    #some kind of error handling here
+    url = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+    params = {
+        "include_groups": "album",
+        "limit": 10
+    }
     
+    res = requests.get(url, headers=headers, params=params)
+    if res.status_code == 200:
+        albums = res.json()['items']
+        for album in albums:
+            print(f"Album Name: {album['name']}, Release Date: {album['release_date']},")
+        return album['name']
     
 
 token = get_token()
-artist_data = get_artist_JSON(token, "Kanye West")
-id = artist_data[0]['name']
-print(id)
+MNM = get_artist_descography(token, "Eminem")
