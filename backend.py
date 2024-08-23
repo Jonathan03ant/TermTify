@@ -25,8 +25,9 @@ class Auth:
         url =  "https://accounts.spotify.com/api/token"
         header = base64.b64encode(f"{self.client_id}:{self.client_secret}".encode()).decode()
         res = requests.post(url,
-                           headers = { "Content-Type": "application/x-www-form-urlencoded",
-                                       "Authorization": f"Basic {header}"
+                           headers = { 
+                                      "Authorization": f"Basic {header}",
+                                      "Content-Type": "application/x-www-form-urlencoded"                               
                            },
                            data = {
                                "grant_type": "client_credentials"
@@ -38,17 +39,21 @@ class Auth:
 class Search:
     def __init__(self, token):
         self.token = token
-    # @Returns a JSON object of the artist data
-        # id:
-        # name:
-        # popularity:
-        # type:
-        # uri:
-        # external_urls:
-        # followers:
-        # genres:
-        # href:
-        # iamges: 
+
+# SEARCHING ARTIOST INFORMATION
+
+    # https://developer.spotify.com/documentation/web-api/reference/search
+    # Finds artist metadata from artist name
+        # @param Type = Artist is very important
+    # @Returns a list of artist metadata
+        # [ artists 
+        #       ...
+        #       ...
+        #       "items": [  <---- List of artists
+        #           "id"
+        #           "name"
+        #           ...]
+        #    ...    ]
     def get_artist_MetaData(self, artist_name):
         url = 'https://api.spotify.com/v1/search'
         header = {
@@ -113,6 +118,65 @@ class Search:
             print(e)
             return None
         return res.json()['tracks']
+
+# SEARCHING TRACK INFORMATION
+    # https://developer.spotify.com/documentation/web-api/reference/search/search
+    # Finds track metadata from track name and artist name
+        # @param Type = Track is very important
+    # @Returns a list of track metadata
+        # [ tracks 
+        #       ...
+        #       ...
+        #       "items": [  <---- List of tracks
+        #           "id"
+        #           "name"
+        #           ...]
+        #    ...    ]
+    def get_track_id(self, artist_name, track_name):
+        url = 'https://api.spotify.com/v1/search'
+        header = {
+            "Authorization": f"Bearer {self.token}"
+        }
+        param = {
+            "q": f"track:{track_name} artist:{artist_name}",
+            "type": "track",
+            "limit": 1
+        }
+        
+        try:
+            res = requests.get(url, headers=header, params=param)
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return None
+        tracks = res.json()['tracks']['items']
+        if len(tracks) == 0:
+            print("Track not found")
+            return None
+        return tracks[0]['id']
+    
+class Player:
+    def __init__(self, token):
+        self.token = token
+        
+    def play_track(self, track_id):
+        url = 'https://api.spotify.com/v1/me/player/play'
+        header = {
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "uris": [f"spotify:track:{track_id}"]
+        }
+        
+        try:
+            res = requests.put(url, headers=header, json=data)
+            if res.status_code == 204:
+                print("Track is now playing")
+            else:
+                print(f"Falied to play track, status code: {res.status_code}")
+        except requests.exceptions.RequestException as e:
+            print(e)
+
 
         
 
