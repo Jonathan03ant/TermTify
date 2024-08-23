@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 import argparse
 
-from backend import Auth, Search
+from backend import Auth, Search, Player
 
 def main():
     
     auth = Auth()
     token = auth.token
     search = Search(token)
+    play = Player(token)
+    
     
     parser = argparse.ArgumentParser(
         prog="Tmfy",
@@ -45,6 +47,12 @@ def main():
         
         else:
             parser.error("Invalid Explanation")
+    elif arguments.action == "play" or arguments.action == "pl":
+        if arguments.explanation:
+            track_id = search.get_track_id(arguments.artist_name, arguments.explanation)
+            play.play_track(track_id)
+        else:
+            parser.error("Please specify a track name using --track.")
     else:
         parser.print_help()
         
