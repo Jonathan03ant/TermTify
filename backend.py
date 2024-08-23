@@ -39,16 +39,16 @@ class Search:
     def __init__(self, token):
         self.token = token
     # @Returns a JSON object of the artist data
-    # id:
-    # name:
-    # popularity:
-    # type:
-    # uri:
-    # external_urls:
-    # followers:
-    # genres:
-    # href:
-    # iamges: 
+        # id:
+        # name:
+        # popularity:
+        # type:
+        # uri:
+        # external_urls:
+        # followers:
+        # genres:
+        # href:
+        # iamges: 
     def get_artist_MetaData(self, artist_name):
         url = 'https://api.spotify.com/v1/search'
         header = {
@@ -57,59 +57,63 @@ class Search:
         params = {
             "q": artist_name,
             "type": "artist",
-            "limit": 5
+            "limit": 1
         }
         
-        res = requests.ger(url, headers=header, params=params)
+        try:
+            res = requests.get(url, headers=header, params=params)
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return None
+        
         return res.json()['artists']['items']
 
+    def get_artist_id(self, artist_name):
+        artist_data = self.get_artist_MetaData(artist_name)
+        id = artist_data[0]['id']
+        return id
     
+    # https://developer.spotify.com/documentation/web-api/reference/get-an-artists-albums
+        # Finds artist id from artist name
+        # @Returns a dictionary of the artist's discography 
+            # { ...
+            #   ...
+            #   "items": [  <---- List of albums
+            #      "name"
+            #      "release_date"
+            #      ...]
+            # }       
+    def get_artist_descography(self, artist_name):
+        artist_id = self.get_artist_id(artist_name)
+        url = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
+        header = {
+            "Authorization": f"Bearer {self.token}"
+        }
+        params = {
+            "include_groups": "album",
+            "limit": 10
+        }
+        try: 
+            res = requests.get(url, headers=header, params=params)
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return None
+        return res.json()['items']
     
-def get_artist_id(token, artist_name):
-    artist_data = get_artist_JSON(token, artist_name)
-    return artist_data[0]['id']  
-
-
-# @Returns a dictionary of the artist's discography with each album having 
-    # Album Name
-    # Release Date ... etc https://developer.spotify.com/documentation/web-api/reference/get-an-artists-albums
-def get_artist_descography(token, artist_name):
-    artist_id = get_artist_id(token, artist_name)
-    #some kind of error handling here
-    url = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-    params = {
-        "include_groups": "album",
-        "limit": 10
-    }
-    
-    res = requests.get(url, headers=headers, params=params)
-    if res.status_code == 200:
-        albums = res.json()['items']
-        return albums
-    else:
-        return res.status_code
+    def get_artist_top_tracks(self, artist_name):
+        artist_id = self.get_artist_id(artist_name)
+        url = f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks"
+        header = {
+            "Authorization": f"Bearer {self.token}"
+        }
         
-        
-# @Returns a dictionary of the artist's top tracks wtth each track having
-    #  Track name, Alum they are in, Artist
-    #  id, popularity, type, uri, external_urls, href, iamges
-    #  ... https://developer.spotify.com/documentation/web-api/reference/get-an-artists-top-tracks
-def get_artist_top_tracks(token, artist_name):
-    artist_id = get_artist_id(token, artist_name)
-    url = f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks"
-    header = {
-        "Authorization": f"Bearer {token}"
-    }
-    
-    res = requests.get(url, headers=header)
-    if res.status_code == 200:
-        top_tracks = res.json()['tracks']
-        return top_tracks
-    else:
-        return res.status_code
+        try:
+            res = requests.get(url, headers=header)
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return None
+        return res.json()['tracks']
+
         
 
 
