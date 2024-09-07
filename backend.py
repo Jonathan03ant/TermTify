@@ -1,40 +1,112 @@
-import requests
+import requests, base64, os, secrets, hashlib
 from dotenv import load_dotenv
-import os
-import base64
-from requests import post
+from flask import Flask, redirect, request
 
 load_dotenv()
 
+app = Flask(__name__)
+
+# The Authorization Code Flow with PKCE 
 class Auth:
+    
     def __init__(self):
         self.client_id = os.getenv('CLIENT_ID')
         self.client_secret = os.getenv('CLIENT_SECRET')
-        self.token = self.get_token()
+        self.redirect_uri = os.getenv('REDIRECT_URI')
+        self.code_verifier = self.generate_code_verifier() # PKCE Step oen
+        self.token = None
+
+
+    #GENERATE A CODE VERIFIER
+    def generate_code_verifier(self):
+        return secrets.token_urlsafe(64)
+    
+    # GENERATE A CODE CHALLENGE
+    # Once the code verifier has been generated, we must *HASH* it using the SHA256 algorithm. 
+    # This is the value that will be sent within the user authorization request.
+    def generate_code_challenge(self):
+        code_verifier_bytes = self.code_verifier.encode('ascii')
+        code_challenge_digest = hashlib.sha256(code_verifier_bytes).digest()
+        code_challenge = base64.urlsafe_b64encode(code_challenge_digest).decode('ascii').rstrip('=')
+        return code_challenge
+
+    
+    # GETTING THE AUTHORIZATION URL
+    # Endpoint: /authorize, with params including the hashed code challenge
+    def get_authorization_url(self):  
+        code = self.generate_code_challenge()
+        url = 'https://accounts.spotify.com/authorize'
         
-    def get_token(self):
-        # To get a token, we need to send a POST request to the Spotify API
-            # We want to include the following in our request:
-                # URL: https://accounts.spotify.com/api/token
-                # Headers:
-                    # Content-Type: application/x-www-form-urlencoded
-                    # Authorization: Basic <base64 encoded client_id:client_secret>
-                # Data:
-                    # grant_type: client_credentials
-     
-        url =  "https://accounts.spotify.com/api/token"
-        header = base64.b64encode(f"{self.client_id}:{self.client_secret}".encode()).decode()
-        res = requests.post(url,
-                           headers = { 
-                                      "Authorization": f"Basic {header}",
-                                      "Content-Type": "application/x-www-form-urlencoded"                               
-                           },
-                           data = {
-                               "grant_type": "client_credentials"
-                           })
-        token = res.json().get("access_token")
-        return token   
-                           
+        params = {
+            'client_id': self.client_id,
+            'response_type': 'code',
+            'redirect_uri': self.redirect_uri,
+            'code_challenge': code,
+            'code_challenge_method': 'S256',
+            'scope': 'user-read-playback-state user-modify-playback-state'
+        }
+        
+        request_url = requests.Request('GET', url, params=params).prepare().url
+        return request_url
+
+
+    # GETTING THE ACCESS TOKEN
+    # Endpoint: /api/token
+    # Exchange the authorization code for an access token.
+    def get_token(self, code):      
+        url = 'https://accounts.spotify.com/api/token'
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        
+        data = {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': self.redirect_uri,
+            'client_id': self.client_id,
+            'code_verifier': self.code_verifier
+        }
+        
+        response = requests.post(url, headers=headers, data=data)
+        response_data = response.json()
+        print(f"Response From get_token: {response_data}")  
+        self.token = response_data.get('access_token')
+        return self.token
+    
+    
+    # REFRESHING THE ACCESS TOKEN
+    # Endpoint: /api/token
+    # Refresh the access token
+    def refresh_token(self, refresh_token):
+        url = 'https://accounts.spotify.com/api/token'
+        
+        data = {
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh_token,
+            'client_id': self.client_id,   
+        }
+        
+        response = requests.post(url, data=data)
+        response_data = response.json()
+        self.token = response_data.get('access_token')
+        return self.token
+   
+    # REFRESHING THE ACCESS TOKEN
+    # Endpoint: /api/token
+    # Refresh the access token
+    def refresh_token(self, refresh_token):
+        url = 'https://accounts.spotify.com/api/token'
+        
+        data = {
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh_token,
+            'client_id': self.client_id,   
+        }
+        
+        response = requests.post(url, data=data)
+        response_data = response.json()
+        self.token = response_data.get('access_token')
+        return self.token
 
 class Search:
     def __init__(self, token):
@@ -158,24 +230,25 @@ class Player:
     def __init__(self, token):
         self.token = token
         
-    def play_track(self, track_id):
-        url = 'https://api.spotify.com/v1/me/player/play'
-        header = {
-            "Authorization": f"Bearer {self.token}",
-            "Content-Type": "application/json"
-        }
-        data = {
-            "uris": [f"spotify:track:{track_id}"]
+    def get_devices(self):
+        url = 'https://api.spotify.com/v1/me/player/devices'
+        headers = {
+            "Authorization": f"Bearer {self.token}"
         }
         
         try:
-            res = requests.put(url, headers=header, json=data)
-            if res.status_code == 204:
-                print("Track is now playing")
+            res = requests.get(url, headers=headers)
+            if res.status_code == 200:
+                return res.json().get('devices', [])
             else:
-                print(f"Falied to play track, status code: {res.status_code}")
-        except requests.exceptions.RequestException as e:
+                print(f"Error fetching devices: {res.status_code}")
+                return None
+        except requests.exceptions.RequestException as e: 
             print(e)
+            return None
+
+
+    
 
 
         
