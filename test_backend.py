@@ -1,10 +1,10 @@
-from backend import Auth, Player
+from backend import Auth, Player, Search
 
 # Global variable to store the token
 token = None
 
 def test_get_token():
-    global token  # Make sure to use the global token variable
+    global token  
     
     # Step 1: Initialize the Auth class
     auth = Auth()
@@ -28,8 +28,7 @@ def test_get_token():
         print("Failed to get access token.")
 
 def test_get_devices():
-    global token  # Make sure to use the global token variable
-    
+    global token                                                        # Access the global token variable
     # Step 6: Check if the token is available
     if not token:
         print("You need to login and get a token first.")
@@ -47,9 +46,22 @@ def test_get_devices():
     else:
         print("No devices found or unable to fetch devices.")
 
+def test_get_artist_id():
+    global token
+    if not token:
+        print("You need to login and get a token first.")
+        return
+    search = Search(token)
+    input_artist = input("Enter the artist name: ")
+    id = search.get_artist_id(input_artist)
+    if id:
+        print(f"Artist ID: {id}")
+    else:
+        print("Failed to get artist ID.")
     
 if __name__ == "__main__":
     # Step 10: Test fetching the token and then print devices
     test_get_token()  # This will guide the user through login and token exchange
     print("\n Printing Devices \n")
     test_get_devices()
+    test_get_artist_id()
