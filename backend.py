@@ -13,7 +13,8 @@ class Auth:
         self.client_id = os.getenv('CLIENT_ID')
         self.client_secret = os.getenv('CLIENT_SECRET')
         self.redirect_uri = os.getenv('REDIRECT_URI')
-        self.code_verifier = self.generate_code_verifier() # PKCE Step oen
+        self.code_verifier = self.generate_code_verifier() 
+        self.code_challenge = self.generate_code_challenge()
         self.token = None
 
 
@@ -34,18 +35,17 @@ class Auth:
     # GETTING THE AUTHORIZATION URL
     # Endpoint: /authorize, with params including the hashed code challenge
     def get_authorization_url(self):  
-        code = self.generate_code_challenge()
         url = 'https://accounts.spotify.com/authorize'
         
         params = {
             'client_id': self.client_id,
             'response_type': 'code',
             'redirect_uri': self.redirect_uri,
-            'code_challenge': code,
+            'code_challenge': self.code_challenge,
             'code_challenge_method': 'S256',
             'scope': 'user-read-playback-state user-modify-playback-state'
         }
-        
+        #print(f"Params: {params}")
         request_url = requests.Request('GET', url, params=params).prepare().url
         return request_url
 
