@@ -41,19 +41,16 @@ class Search:
             print(e)
             return None
         return res.json()['artists']['items']
-
     
-    
-    # https://developer.spotify.com/documentation/web-api/reference/get-an-artists-albums
-        # Finds artist id from artist name
-        # @Returns a dictionary of the artist's discography 
-            # { ...
-            #   ...
-            #   "items": [  <---- List of albums
-            #      "name"
-            #      "release_date"
-            #      ...]
-            # }       
+   
+    ###############################################################
+    ### PARAMETERS:  artist_name (string)
+    ### RETURN:      list of artist discography [albums "items(albums)" [name, release_date, ...]]
+    ### PURPOSE:     We can refer to this metadata for artist discography
+    ### Documentation: https://developer.spotify.com/documentation/web-api/reference/get-an-artists-albums
+    ### NOTE:        Finds artist id from artist name first
+    ###              inserts artist id into the url
+    ###############################################################
     def get_artist_descography(self, artist_name):
         artist_id = self.get_artist_id(artist_name)
         url = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
@@ -71,6 +68,14 @@ class Search:
             return None
         return res.json()['items']
     
+    
+    ###############################################################
+    ### PARAMETERS:  artist_name (string)
+    ### RETURN:      list of artist top tracks [tracks]
+    ### PURPOSE:     returns the top tracks of the artist
+    ### NOTE:        Finds artist id from artist name first
+    ###              inserts artist id into the url
+    ###############################################################
     def get_artist_top_tracks(self, artist_name):
         artist_id = self.get_artist_id(artist_name)
         url = f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks"
@@ -84,20 +89,15 @@ class Search:
             print(e)
             return None
         return res.json()['tracks']
-
-# SEARCHING TRACK INFORMATION
-    # https://developer.spotify.com/documentation/web-api/reference/search/search
-    # Finds track metadata from track name and artist name
-        # @param Type = Track is very important
-    # @Returns a list of track metadata
-        # [ tracks 
-        #       ...
-        #       ...
-        #       "items": [  <---- List of tracks
-        #           "id"
-        #           "name"
-        #           ...]
-        #    ...    ]
+    
+    
+    ###############################################################
+    ### PARAMETERS:  artist_name (string), track_name (string)
+    ### RETURN:      track id
+    ### PURPOSE:     Get the track id from the artist name and track name
+    ### NOTE:        Finds track metadata from track name and artist name
+    ###              @param Type = Track is very important
+    ###############################################################
     def get_track_id(self, artist_name, track_name):
         url = 'https://api.spotify.com/v1/search'
         header = {
@@ -114,6 +114,7 @@ class Search:
         except requests.exceptions.RequestException as e:
             print(e)
             return None
+        
         tracks = res.json()['tracks']['items']
         if len(tracks) == 0:
             print("Track not found")
