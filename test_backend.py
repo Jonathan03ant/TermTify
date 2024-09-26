@@ -58,6 +58,12 @@ def test_get_artist_id():
         print(f"Artist ID: {id}")
     else:
         print("Failed to get artist ID.")
+        
+def test_get_artist_metadata():
+    global token
+    if not token:
+        print("You need to login and get a token first.")
+        
     
 if __name__ == "__main__":
     # Step 10: Test fetching the token and then print devices

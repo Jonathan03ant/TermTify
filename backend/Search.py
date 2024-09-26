@@ -6,26 +6,24 @@ class Search:
     def __init__(self, token):
         self.token = token
     
-    # GETTING ARTIST ID  
+    ###############################################################
+    ### PARAMETERS:  artist_name (string)
+    ### RETURN:      id
+    ### PURPOSE:     Get the artist id from the artist name
+    ###############################################################
     def get_artist_id(self, artist_name):
         artist_data = self.get_artist_MetaData(artist_name)
         id = artist_data[0]['id']
         return id
-
-# SEARCHING ARTIOST INFORMATION
-
-    # https://developer.spotify.com/documentation/web-api/reference/search
-    # Finds artist metadata from artist name
-        # @param Type = Artist is very important
-    # @Returns a list of artist metadata
-        # [ artists 
-        #       ...
-        #       ...
-        #       "items": [  <---- List of artists
-        #           "id"
-        #           "name"
-        #           ...]
-        #    ...    ]
+    
+    
+    ###############################################################
+    ### PARAMETERS:  artist_name (string)
+    ### RETURN:      list of artist metadata [artists "items" [id, name, ...]]
+    ### PURPOSE:     We can refer to this metadata for artist information
+    ### Documentation: https://developer.spotify.com/documentation/web-api/reference/search
+    ### NOTE:        @param Type = Artist is very important
+    ###############################################################
     def get_artist_MetaData(self, artist_name):
         url = 'https://api.spotify.com/v1/search'
         header = {
@@ -42,7 +40,6 @@ class Search:
         except requests.exceptions.RequestException as e:
             print(e)
             return None
-        
         return res.json()['artists']['items']
 
     
