@@ -28,8 +28,7 @@ def test_get_token():
         print("Failed to get access token.")
 
 def test_get_devices():
-    global token                                                        # Access the global token variable
-    # Step 6: Check if the token is available
+    global token                                                        
     if not token:
         print("You need to login and get a token first.")
         return
@@ -52,8 +51,8 @@ def test_get_artist_id():
         print("You need to login and get a token first.")
         return
     search = Search(token)
-    input_artist = input("Enter the artist name: ")
-    id = search.get_artist_id(input_artist)
+    artist = input("Enter the artist name: ")
+    id = search.get_artist_id(artist)
     if id:
         print(f"Artist ID: {id}")
     else:
@@ -63,7 +62,14 @@ def test_get_artist_metadata():
     global token
     if not token:
         print("You need to login and get a token first.")
-        
+        return
+    search = Search(token)
+    artist = input("Enter the artist name: ")
+    metadata = search.get_artist_MetaData(artist)
+    if metadata:
+        print(f"Artist Metadata: {metadata}")
+    else:
+        print("Failed to get artist metadata.")
     
 if __name__ == "__main__":
     # Step 10: Test fetching the token and then print devices
@@ -71,3 +77,4 @@ if __name__ == "__main__":
     print("\n Printing Devices \n")
     test_get_devices()
     test_get_artist_id()
+    test_get_artist_metadata()
