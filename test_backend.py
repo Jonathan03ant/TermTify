@@ -70,11 +70,53 @@ def test_get_artist_metadata():
         print(f"Artist Metadata: {metadata}")
     else:
         print("Failed to get artist metadata.")
+def test_artist_discography():
+    global token 
+    if not token:
+        print("You need to login and get a token first.")
+        return
+    search = Search(token)
+    artist = input("Enter the artist name: ")
+    descography = search.get_artist_descography(artist)
     
+    if descography:
+        print(f"Artist Descography: {descography}")
+    else:
+        print("Failed to get artist descography.")
+        
+def test_artist_top_tracks():
+    global token
+    if not token:
+        print("You need to login and get a token first.")
+        return
+    search = Search(token)
+    artist = input("Enter the artist name: ")
+    top_tracks = search.get_artist_top_tracks(artist)
+    if top_tracks:
+        print(f"Artist Top Tracks: {top_tracks}")
+    else:
+        print("Failed to get artist top tracks.") 
+        
+def test_get_track_id():
+    global token
+    if not token:
+        print("You need to login and get a token first.")
+        return
+    search = Search(token)
+    artist = input("Enter the artist name: ")
+    track = input("Enter the track name: ")
+    id = search.get_track_id(artist, track)
+    if id:
+        print(f"Track ID: {id}")
+    else:
+        print("Failed to get track ID.")
 if __name__ == "__main__":
     # Step 10: Test fetching the token and then print devices
     test_get_token()  # This will guide the user through login and token exchange
     print("\n Printing Devices \n")
     test_get_devices()
     test_get_artist_id()
-    test_get_artist_metadata()
+    #test_get_artist_metadata()                                     #Working
+    #test_artist_discography()                                      #Working
+    #test_artist_top_tracks()                                       #Working
+    test_get_track_id()                                             #Working
