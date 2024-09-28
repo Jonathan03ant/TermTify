@@ -45,7 +45,7 @@ class Search:
    
     ###############################################################
     ### PARAMETERS:  artist_name (string)
-    ### RETURN:      list of artist discography [albums "items(albums)" [name, release_date, ...]]
+    ### RETURN:      items, [.....,"..", "items(albums)" [name, release_date, ...]]
     ### PURPOSE:     We can refer to this metadata for artist discography
     ### Documentation: https://developer.spotify.com/documentation/web-api/reference/get-an-artists-albums
     ### NOTE:        Finds artist id from artist name first
@@ -73,6 +73,7 @@ class Search:
     ### PARAMETERS:  artist_name (string)
     ### RETURN:      list of artist top tracks [tracks]
     ### PURPOSE:     returns the top tracks of the artist
+    ### Documentation: https://developer.spotify.com/documentation/web-api/reference/artists/get-artists-top-tracks/
     ### NOTE:        Finds artist id from artist name first
     ###              inserts artist id into the url
     ###############################################################
@@ -120,3 +121,34 @@ class Search:
             print("Track not found")
             return None
         return tracks[0]['id']
+
+    
+    
+    ###############################################################
+    ### PARAMETERS:  artist_name (string), track_name (string)
+    ### RETURN:      returns the first track id from list of tracks
+    ### PURPOSE:     Get the track id from the artist name and track name
+    ### NOTE:        Strict naming convention
+    ###############################################################
+    def get_track_id(self, artist_name, track_name):
+        url = 'https://api.spotify.com/v1/search'
+        header = {
+            "Authorization": f"Bearer {self.token}"
+        }
+        
+        param = {
+            "q": f"track:{track_name} artist:{artist_name}",
+            "type": "track",
+            "limit": 3
+            
+        try:
+            res = request.get(url, headers=header, params=param)
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return None
+        tracks = res.json()['tracks']['items']
+        if len(tracks) == 0:
+            print("Track not found")
+            return None
+        return tracks[0]['id']
+        }
