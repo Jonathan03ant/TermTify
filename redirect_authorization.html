@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorization Code</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        #auth-code { font-size: 1.5em; margin: 20px; }
+        .copy-btn { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        .copy-btn:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <h1> T3rmiFy</h1>
+    <h2> Authorization Successful!</h2>
+    <p> Please copy the code below and paste it in your terminal to login with Termify</p>
+    <div id="auth-code"></div>
+    <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+
+    <script>
+        // Extract 'code' query parameter from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const authCode = urlParams.get('code');
+        document.getElementById('auth-code').innerText = authCode;
+
+        // Copy function for the "Copy" button
+        function copyCode() {
+            navigator.clipboard.writeText(authCode);
+            alert('Authorization code copied to clipboard!');
+        }
+    </script>
+</body>
+</html>
