@@ -140,6 +140,7 @@ class Search:
             "q": f"track:{track_name} artist:{artist_name}",
             "type": "track",
             "limit": 3
+        }
             
         try:
             res = request.get(url, headers=header, params=param)
@@ -147,8 +148,8 @@ class Search:
             print(e)
             return None
         tracks = res.json()['tracks']['items']
-        if len(tracks) == 0:
+        if len(tracks) == 0
             print("Track not found")
             return None
         return tracks[0]['id']
-        }
+        
