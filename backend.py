@@ -90,23 +90,6 @@ class Auth:
         response_data = response.json()
         self.token = response_data.get('access_token')
         return self.token
-   
-    # REFRESHING THE ACCESS TOKEN
-    # Endpoint: /api/token
-    # Refresh the access token
-    def refresh_token(self, refresh_token):
-        url = 'https://accounts.spotify.com/api/token'
-        
-        data = {
-            'grant_type': 'refresh_token',
-            'refresh_token': refresh_token,
-            'client_id': self.client_id,   
-        }
-        
-        response = requests.post(url, data=data)
-        response_data = response.json()
-        self.token = response_data.get('access_token')
-        return self.token
 
 class Search:
     def __init__(self, token):
