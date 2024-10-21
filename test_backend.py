@@ -8,24 +8,31 @@ def test_get_token():
     
     # Step 1: Initialize the Auth class
     auth = Auth()
+
+    # Step 2: Check if a valid token exists
+    if auth.token:
+        print("Token is valid, no need for login.")
+        token = auth.token
+        return  # Skip login if token is valid
     
-    # Step 2: Print the authorization URL for the user to log in
+    # Step 3: If no valid token, request authorization
     print("Visit this URL to authorize the app:")
     print(auth.get_authorization_url())
     
-    # Step 3: After the user authorizes, they must enter the authorization code
+    # Step 4: After the user authorizes, they must enter the authorization code
     code = input("Enter the authorization code: ")
     
-    # Step 4: Exchange the authorization code for an access token
+    # Step 5: Exchange the authorization code for an access token
     token = auth.get_token(code)
     
-    # Step 5: Print client ID, secret, and token
+    # Step 6: Print client ID, secret, and token
     if token:
         print(f"Client ID: {auth.client_id}")
         print(f"Client Secret: {auth.client_secret}")
         print(f"Token: {token}")
     else:
         print("Failed to get access token.")
+
 
 def test_get_devices():
     global token                                                        
@@ -110,6 +117,8 @@ def test_get_track_id():
         print(f"Track ID: {id}")
     else:
         print("Failed to get track ID.")
+        
+        
 if __name__ == "__main__":
     # Step 10: Test fetching the token and then print devices
     test_get_token()  # This will guide the user through login and token exchange
