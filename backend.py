@@ -71,12 +71,16 @@ class Auth:
         
         response = requests.post(url, headers=headers, data=data)
         response_data = response.json()
-        print(f"Response From get_token: {response_data}")  
+        #print(f"Response From get_token: {response_data}")
         
-        self.token = response_data.get('access_token')
-        self.refresh_token = response_data.get('refresh_token')
-        self.save_token()
-        
+        if 'access_token' in response_data and 'refresh_token' in response_data:
+            self.token = response_data.get('access_token')
+            self.refresh_token = response_data.get('refresh_token')
+            self.save_token() 
+        else:
+            print(f"Error retriving tokens{ response_data }")
+            self.token = None
+            self.refresh_token = None
         return self.token
     
     
@@ -101,27 +105,46 @@ class Auth:
         
         if 'access_token' in response_data:
             self.token = response_data.get('access_token')
-            self.save_token()
+            self.save_token
             return self.token 
         else:
             print("Failed to refresh Token")
             return None
     
     def save_token(self):
-        #open token.json file, then save self.token and self.refresh toekn to it
-        with open('token.json', 'w') as file:
+        if self.token and self.refresh_token:
             token_data = {
                 "access_token": self.token,
-                "refreh_token": self.refresh_token,
+                "refresh_token": self.refresh_token
             }
-            json.dump(token_data, file)
+            with open("token.json", "w") as file:
+                json.dump(token_data, file)
+        else:
+            print("No token to save.")
     
     def load_token(self):
-        #open json file, read access token and refresh token, load it to self.token and self.refresh tokne
-        with open ('token.json', 'r') as file:
-            token_data = json.load(file)
-            self.token = token_data.get("access_token")
-            self.token = token_data.get("refresh_token")
+        try:
+            with open("token.json", "r") as file:
+                token_data = json.load(file)
+                self.token = token_data.get("access_token")
+                self.refresh_token = token_data.get("refresh_token")
+                print("Login Token Loaded\n")
+                
+                # Check if the token is valid before proceeding 
+                if not self.token or not self.refresh_token:
+                    print("Invalid token data, prompting login.")
+                    self.token = None
+                    self.refresh_token = None
+                else:
+                    print("Tokens are valid")
+            return True
+        except (FileNotFoundError, json.JSONDecodeError):
+            # File is missing or empty, prompt login
+            print("No valid token file found, user must log in.")
+            self.token = None
+            self.refresh_token = None
+            return False
+
     
 
 class Search:
