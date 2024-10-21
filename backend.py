@@ -1,4 +1,4 @@
-import requests, base64, os, secrets, hashlib
+import requests, base64, os, secrets, hashlib, json
 from dotenv import load_dotenv
 from flask import Flask, redirect, request
 
@@ -16,6 +16,8 @@ class Auth:
         self.code_verifier = self.generate_code_verifier() 
         self.code_challenge = self.generate_code_challenge()
         self.token = None
+        self.refresh_token = None
+        self.load_token()
 
 
     #GENERATE A CODE VERIFIER
@@ -50,9 +52,25 @@ class Auth:
         return request_url
 
 
+    def save_token(self):
+        #open token.json file, then save self.token and self.refresh toekn to it
+        with open('token.json', 'w') as file:
+            token_data = {
+                "access_token": self.token,
+                "refreh_token": self.refresh_token,
+            }
+            json.dump(token_data, file)
+    
+    def load_token(self):
+        #open json file, read access token and refresh token, load it to self.token and self.refresh tokne
+        with open ('token.json', 'r') as file:
+            token_data = json.load(file)
+            self.token = token_data.get("access_token")
+            self.token = token_data.get("refresh_token")
+            
     # GETTING THE ACCESS TOKEN
     # Endpoint: /api/token
-    # Exchange the authorization code for an access token.
+    # Exchange the authorization code for an access token.       
     def get_token(self, code):      
         url = 'https://accounts.spotify.com/api/token'
         headers = {
@@ -70,26 +88,42 @@ class Auth:
         response = requests.post(url, headers=headers, data=data)
         response_data = response.json()
         print(f"Response From get_token: {response_data}")  
+        
         self.token = response_data.get('access_token')
+        self.refresh_token = response_data.get('refresh_token')
+        
+        self.save_token()
         return self.token
     
     
     # REFRESHING THE ACCESS TOKEN
     # Endpoint: /api/token
     # Refresh the access token
-    def refresh_token(self, refresh_token):
+    def refresh_token(self):
+        if not self.refresh_token():
+            print("No refresh token available")
+            return None
+        
         url = 'https://accounts.spotify.com/api/token'
         
         data = {
             'grant_type': 'refresh_token',
-            'refresh_token': refresh_token,
+            'refresh_token': self.refresh_token(),
             'client_id': self.client_id,   
         }
         
         response = requests.post(url, data=data)
         response_data = response.json()
+        
+        if 'access_token' in response_data:
+            self.token = response_data.get('access_token')
+            self.save_token()
+            return self.token 
         self.token = response_data.get('access_token')
         return self.token
+    
+    def load_token(self):
+        
 
 class Search:
     def __init__(self, token):
