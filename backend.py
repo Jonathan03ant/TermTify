@@ -131,19 +131,51 @@ class Auth:
                 print("Login Token Loaded\n")
                 
                 # Check if the token is valid before proceeding 
-                if not self.token or not self.refresh_token:
-                    print("Invalid token data, prompting login.")
-                    self.token = None
-                    self.refresh_token = None
+                if self.token and self.is_token_valid():
+                    print("Token is valid")
+                    return true
+                elif self.refresh_token():
+                    print("Access token is expired, Attempting to refresh token...")
+                    if self.refresh_token():
+                        print("Token is refreshed")
+                        return true
+                    else:
+                        print("Refresh failed. Login required.")
+                        self.clear_tokens()
                 else:
-                    print("Tokens are valid")
-            return True
+                    print("No valid tokens available, login required.")
+                    self.clear_tokens()
+
         except (FileNotFoundError, json.JSONDecodeError):
             # File is missing or empty, prompt login
             print("No valid token file found, user must log in.")
-            self.token = None
-            self.refresh_token = None
+            self.clear_tokens()
             return False
+
+        ###############################################################
+    ### PARAMETERS:  None
+    ### RETURN:      True if token is valid, False if not
+    ### PURPOSE:     Verify if the current token is still valid by 
+    ###              making a simple API request
+    ###############################################################
+    def is_token_valid(self):
+        url = 'https://api.spotify.com/v1/me/player/devices'
+        headers = {
+            "Authorization": f"Bearer {self.token}"
+        }
+        response = requests.get(url, headers=headers)
+        return response.status_code == 200
+
+    ###############################################################
+    ### PARAMETERS:  None
+    ### RETURN:      None
+    ### PURPOSE:     Clear tokens from memory when invalid
+    ###############################################################
+    def clear_tokens(self):
+        self.token = None
+        self.refresh_token = None
+        if os.path.exists("token.json"):
+            os.remove("token.json")
 
     
 
