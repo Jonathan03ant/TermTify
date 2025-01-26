@@ -15,9 +15,9 @@ class Auth:
         self.redirect_uri = os.getenv('REDIRECT_URI')
         self.code_verifier = self.generate_code_verifier() 
         self.code_challenge = self.generate_code_challenge()
-        self.token = None
-        self.refresh_token = None
         self.load_token()
+        self.token = None    #output
+        self.refresh_token = None    #output
 
 
     ###############################################################
