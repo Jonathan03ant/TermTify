@@ -163,7 +163,11 @@ class Auth:
         headers = {
             "Authorization": f"Bearer {self.token}"
         }
+
         response = requests.get(url, headers=headers)
+        if response.status_code == 401:
+            print("Access token is expired or invalid")
+            return false;
         return response.status_code == 200
 
     ###############################################################
