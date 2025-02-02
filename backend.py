@@ -133,12 +133,12 @@ class Auth:
                 # Check if the token is valid before proceeding 
                 if self.token and self.is_token_valid():
                     print("Token is valid")
-                    return true
+                    return True
                 elif self.refresh_token():
                     print("Access token is expired, Attempting to refresh token...")
                     if self.refresh_token():
                         print("Token is refreshed")
-                        return true
+                        return True
                     else:
                         print("Refresh failed. Login required.")
                         self.clear_tokens()
