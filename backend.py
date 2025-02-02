@@ -88,7 +88,7 @@ class Auth:
     # Endpoint: /api/token
     # Refresh the access token
     def refresh_token(self):
-        if not self.refresh_token():
+        if not self.refresh_token:
             print("No refresh token available")
             return None
         
@@ -96,7 +96,7 @@ class Auth:
         
         data = {
             'grant_type': 'refresh_token',
-            'refresh_token': self.refresh_token(),
+            'refresh_token': self.refresh_token,
             'client_id': self.client_id,   
         }
         
@@ -105,6 +105,7 @@ class Auth:
         
         if 'access_token' in response_data:
             self.token = response_data.get('access_token')
+            self.refresh_token = response_data.get('refresh_token', self.refresh_token)
             self.save_token
             return self.token 
         else:
@@ -128,20 +129,28 @@ class Auth:
                 token_data = json.load(file)
                 self.token = token_data.get("access_token")
                 self.refresh_token = token_data.get("refresh_token")
-                print("Login Token Loaded\n")
+                print("** Login Tokens Are Now Loaded! **\n")
                 
                 # Check if the token is valid before proceeding 
+                # Edge Case one: Token is loaded and is valid
                 if self.token and self.is_token_valid():
-                    print("Token is valid")
+                    print("** Access Token is valid **")
                     return True
-                elif self.refresh_token():
-                    print("Access token is expired, Attempting to refresh token...")
-                    if self.refresh_token():
-                        print("Token is refreshed")
+                
+                #Edge Case two: Token is loaded, but is expired
+                                # We can use the refresh token
+                elif not self.token and self.refresh_token:
+                    print("** Access Token is Expired! **")
+                    print("Attempting To Refresh Access Token...")
+                    new_token = self.refresh_token()
+                    
+                    if new_token:
+                        print("** Token Is Refreshed! **\n")
                         return True
                     else:
-                        print("Refresh failed. Login required.")
-                        self.clear_tokens()
+                        print("** Refreshing Access Token Failed! **\n")
+                        print("Login Required")
+                        self.clear_tokens
                 else:
                     print("No valid tokens available, login required.")
                     self.clear_tokens()
@@ -167,7 +176,7 @@ class Auth:
         response = requests.get(url, headers=headers)
         if response.status_code == 401:
             print("Access token is expired or invalid")
-            return false;
+            return False;
         return response.status_code == 200
 
     ###############################################################
