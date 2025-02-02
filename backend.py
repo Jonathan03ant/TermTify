@@ -133,12 +133,12 @@ class Auth:
                 # Check if the token is valid before proceeding 
                 if self.token and self.is_token_valid():
                     print("Token is valid")
-                    return true
+                    return True
                 elif self.refresh_token():
                     print("Access token is expired, Attempting to refresh token...")
                     if self.refresh_token():
                         print("Token is refreshed")
-                        return true
+                        return True
                     else:
                         print("Refresh failed. Login required.")
                         self.clear_tokens()
@@ -163,7 +163,11 @@ class Auth:
         headers = {
             "Authorization": f"Bearer {self.token}"
         }
+
         response = requests.get(url, headers=headers)
+        if response.status_code == 401:
+            print("Access token is expired or invalid")
+            return false;
         return response.status_code == 200
 
     ###############################################################
