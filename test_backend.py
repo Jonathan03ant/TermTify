@@ -9,29 +9,32 @@ def test_get_token():
     # Step 1: Initialize the Auth class
     auth = Auth()
 
-    # Step 2: Check if a valid token exists
-    if auth.token:
+    try:
+        # Step 2: Check if a valid token exists
+        if not auth.token:
+            raise ValueError("No token loaded")
         print("Token is valid, no need for login.")
         token = auth.token
         return  # Skip login if token is valid
-    
-    # Step 3: If no valid token, request authorization
-    print("Visit this URL to authorize the app:")
-    print(auth.get_authorization_url())
-    
-    # Step 4: After the user authorizes, they must enter the authorization code
-    code = input("Enter the authorization code: ")
-    
-    # Step 5: Exchange the authorization code for an access token
-    token = auth.get_token(code)
-    
-    # Step 6: Print client ID, secret, and token
-    if token:
-        print(f"Client ID: {auth.client_id}")
-        print(f"Client Secret: {auth.client_secret}")
-        print(f"Token: {token}")
-    else:
-        print("Failed to get access token.")
+
+    except ValueError:
+        # Step 3: If no valid token, request authorization
+        print("Visit this URL to authorize the app:")
+        print(auth.get_authorization_url())
+        
+        # Step 4: After the user authorizes, they must enter the authorization code
+        code = input("Enter the authorization code: ")
+        
+        # Step 5: Exchange the authorization code for an access token
+        token = auth.get_token(code)
+        
+        # Step 6: Print client ID, secret, and token
+        if token:
+            print(f"Client ID: {auth.client_id}")
+            print(f"Client Secret: {auth.client_secret}")
+            print(f"Token: {token}")
+        else:
+            print("Failed to get access token.")
 
 
 def test_get_devices():
