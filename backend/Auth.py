@@ -26,7 +26,7 @@ class Auth:
     ### PURPOSE:     Generate a code verifier for PKCE
     ###############################################################
     def generate_code_verifier(self):
-        return secrets.token_urlsafe(100)
+        return secrets.token_urlsafe(64)
     
     
     ###############################################################
@@ -105,16 +105,16 @@ class Auth:
     ### RETURN:      Refreshed access token (string) or None
     ### PURPOSE:     Refresh the access token using the refresh token
     ###############################################################
-    def refresh_token(self):
-        if not self.refresh_token():
-            print("No refresh token available on file")
+    def refresh_access_token(self):
+        if not self.refresh_token:
+            print("No refresh token available on file!")
             return None
         
         url = 'https://accounts.spotify.com/api/token'
         
         data = {
             'grant_type': 'refresh_token',
-            'refresh_token': self.refresh_token(),
+            'refresh_token': self.refresh_token,
             'client_id': self.client_id,   
         }
         
@@ -124,7 +124,7 @@ class Auth:
         if 'access_token' in response_data:
             self.token = response_data.get('access_token')
             self.refresh_token = response_data.get('refresh_token', self.refresh_token)
-            self.save_token
+            self.save_token()
             return self.token 
         else:
             print("Failed to refresh Token")
@@ -167,11 +167,12 @@ class Auth:
                     print("** Access Token is valid **")
                     return True
                 
-                #Edge case two, token is loaded but is expired (not valid)
-                elif not self.token and self.refresh_token:
+                #Edge Case two: Token is loaded, but is expired
+                                # We can use the refresh token
+                elif self.token and not self.is_token_valid() and self.refresh_token:
                     print("** Access Token is Expired! **")
                     print("Attempting To Refresh Access Token...")
-                    new_token = self.refresh_token()
+                    new_token = self.refresh_access_token()
                     
                     if new_token:
                         print("** Token Is Refreshed! **\n")
@@ -179,15 +180,16 @@ class Auth:
                     else:
                         print("** Refreshing Access Token Failed! **\n")
                         print("Login Required")
-                        self.clear_tokens
+                        self.clear_tokens()
+                        return False
                 else:
                     print("No valid tokens available, login required.")
                     self.clear_tokens()
                     
         except (FileNotFoundError, json.JSONDecodeError):
             # File is missing or empty, prompt login
-            print("No valid token file found, user must log-in!")
-            self.refresh_token = None
+            print("No valid token file found, user must log in.")
+            self.clear_tokens()
             return False
         
         
@@ -218,29 +220,4 @@ class Auth:
         self.token = None
         self.refresh_token = None
         if os.path.exists("tokens.json"):
-            os.remove("token.json")
-            
-        
-    
-auth = Auth()
-
-@app.route('/login')
-def login():
-    return redirect(auth.get_authorization_url()) #sends the rpepared URL to the user
-
-@app.route('/callback')
-def callback():
-    code = request.args.get('code')  
-    if not code:
-        return "Authorization failed", 
-    
-    token = auth.get_token(code)  
-    
-    if token:
-        return f"Access Token: {token}"  
-    else:
-        return "Failed to get access token", 
-    
-    
-if __name__ == "__main__":
-    app.run(debug=True)
+            os.remove("tokens.json")
