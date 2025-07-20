@@ -15,9 +15,9 @@ class Auth:
         self.redirect_uri = os.getenv('REDIRECT_URI')
         self.code_verifier = self.generate_code_verifier() 
         self.code_challenge = self.generate_code_challenge()
+        self.token = None
+        self.refresh_token = None
         self.load_token()
-        self.token = None    #output
-        self.refresh_token = None    #output
 
 
     ###############################################################
@@ -32,18 +32,23 @@ class Auth:
     ###############################################################
     ### PARAMETERS:  None
     ### RETURN:      A hashed code challenge (string)
-    ### PURPOSE:     Generate a code challenge for PKCE, hashed using SHA256
+    ### PURPOSE:     Generate a code challenge for PKCE, code_verifier --> hashed using SHA256
+    #                This is the value that will be sent within the user authorization request. 
     ###############################################################
     def generate_code_challenge(self):
-        return hashlib.sha256(self.code_verifier.encode()).hexdigest()
+        code_verifier_bytes = self.code_verifier.encode('ascii')
+        code_challenge_digest = hashlib.sha256(code_verifier_bytes).digest()
+        code_challenge = base64.urlsafe_b64encode(code_challenge_digest).decode('ascii').rstrip('=')
+        return code_challenge
     
     
     ###############################################################
     ### PARAMETERS:  None
+    ### Endpoint:    /authorize
     ### RETURN:      Authorization URL (string)
     ### PURPOSE:     Get the authorization URL for the user to log in with Spotify
     ###############################################################
-    def get_authorization_code(self):  
+    def get_authorization_url(self):  
         url = 'https://accounts.spotify.com/authorize'
         
         params = {
@@ -54,13 +59,14 @@ class Auth:
             'code_challenge_method': 'S256',
             'scope': 'user-read-playback-state user-modify-playback-state'
         }
-        #print(f"Params: {params}")
+        
         request_url = requests.Request('GET', url, params=params).prepare().url
         return request_url
 
 
     ###############################################################
     ### PARAMETERS:  code (string)
+    ### Endpoint:    /api/token
     ### RETURN:      access token (string) or None
     ### PURPOSE:     Exchange the authorization code for an access token
     ###############################################################
@@ -80,17 +86,18 @@ class Auth:
         
         response = requests.post(url, headers=headers, data=data)
         response_data = response.json()
-        #print(f"Response From get_token: {response_data}")
         
         if 'access_token' in response_data and 'refresh_token' in response_data:
             self.token = response_data.get('access_token')
             self.refresh_token = response_data.get('refresh_token')
-            self.save_token() 
+            self.save_token()
+            return self.token
         else:
-            print(f"Error retriving tokens{ response_data }")
+            print(f"Error retrieving tokens from URL{ response_data }")
             self.token = None
             self.refresh_token = None
-        return self.token
+            return None
+
     
     
     ###############################################################
@@ -100,7 +107,7 @@ class Auth:
     ###############################################################
     def refresh_token(self):
         if not self.refresh_token():
-            print("No refresh token available")
+            print("No refresh token available on file")
             return None
         
         url = 'https://accounts.spotify.com/api/token'
@@ -116,6 +123,7 @@ class Auth:
         
         if 'access_token' in response_data:
             self.token = response_data.get('access_token')
+            self.refresh_token = response_data.get('refresh_token', self.refresh_token)
             self.save_token
             return self.token 
         else:
@@ -126,7 +134,7 @@ class Auth:
     ###############################################################
     ### PARAMETERS:  None
     ### RETURN:      None
-    ### PURPOSE:     Save the access and refresh tokens to a file
+    ### PURPOSE:     Save the access and refresh tokens to a local file
     ###############################################################
     def save_token(self):
         if self.token and self.refresh_token:
@@ -134,7 +142,7 @@ class Auth:
                 "access_token": self.token,
                 "refresh_token": self.refresh_token
             }
-            with open("token.json", "w") as file:
+            with open("tokens.json", "w") as file:
                 json.dump(token_data, file)
         else:
             print("No token to save.")
@@ -147,26 +155,72 @@ class Auth:
     ###############################################################
     def load_token(self):
         try:
-            with open("token.json", "r") as file:
+            with open("tokens.json", "r") as file:
                 token_data = json.load(file)
                 self.token = token_data.get("access_token")
                 self.refresh_token = token_data.get("refresh_token")
-                print("Login Token Loaded\n")
+                print("** Login Token Loaded! **\n")
                 
                 # Check if the token is valid before proceeding 
-                if not self.token or not self.refresh_token:
-                    print("Invalid token data, prompting login.")
-                    self.token = None
-                    self.refresh_token = None
+                #Edge case first, token is loaded and is valid
+                if self.token and self.is_token_valid():
+                    print("** Access Token is valid **")
+                    return True
+                
+                #Edge case two, token is loaded but is expired (not valid)
+                elif not self.token and self.refresh_token:
+                    print("** Access Token is Expired! **")
+                    print("Attempting To Refresh Access Token...")
+                    new_token = self.refresh_token()
+                    
+                    if new_token:
+                        print("** Token Is Refreshed! **\n")
+                        return True
+                    else:
+                        print("** Refreshing Access Token Failed! **\n")
+                        print("Login Required")
+                        self.clear_tokens
                 else:
-                    print("Tokens are valid")
-            return True
+                    print("No valid tokens available, login required.")
+                    self.clear_tokens()
+                    
         except (FileNotFoundError, json.JSONDecodeError):
             # File is missing or empty, prompt login
-            print("No valid token file found, user must log in.")
-            self.token = None
+            print("No valid token file found, user must log-in!")
             self.refresh_token = None
             return False
+        
+        
+    ###############################################################
+    ### PARAMETERS:  None
+    ### RETURN:      True if token is valid, False if not
+    ### PURPOSE:     Verify if the current token is still valid by making a simple API request
+    ###############################################################
+    def is_token_valid(self):
+        url = 'https://api.spotify.com/v1/me/player/devices'
+        headers = {
+            "Authorization": f"Bearer {self.token}"
+        }
+        
+        response = requests.get(url, headers=headers)
+        if response.status_code == 401:
+            print("Access token is expired or invalid")
+            return False;
+        return response.status_code == 200
+    
+    
+    ###############################################################
+    ### PARAMETERS:  None
+    ### RETURN:      None
+    ### PURPOSE:     Clear tokens from memory when invalid
+    ###############################################################
+    def clear_tokens(self):
+        self.token = None
+        self.refresh_token = None
+        if os.path.exists("tokens.json"):
+            os.remove("token.json")
+            
+        
     
 auth = Auth()
 
