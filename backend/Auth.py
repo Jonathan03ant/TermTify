@@ -1,10 +1,7 @@
 import requests, base64, os, secrets, hashlib, json
 from dotenv import load_dotenv
-from flask import Flask, redirect, request
 
 load_dotenv()
-
-app = Flask(__name__)
 
 # The Authorization Code Flow with PKCE 
 class Auth:
