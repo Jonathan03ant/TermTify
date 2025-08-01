@@ -8,13 +8,55 @@ class Search:
     """
     Function: universal search api that directly maps to spotify's /search endpoint
     Returns: standardize json format
-
-        @query: the search item to search ("name", "song name", "album"....)
-        @search_type: what to search for ("artist", "album", "playlist"...)
-        @limit: number of results, default at 20
-        @offset: pagination, default to 0
+    Params:
+            @query: the search item to search ("name", "song name", "album"....)
+            @search_type: what to search for ("artist", "album", "playlist"...)
+            @limit: number of results, default at 20
+            @offset: pagination, default to 0
     """    
     def search(self, query, search_type, limit=10, offset=0, market=None):
+        # Input validation
+        valid_search_types = ["artist", "track", "album", "playlist", "show", "episode"]
+        
+        #validate query
+        if not query or not query.strip():
+            return {
+                "success": False,
+                "error": "Query cannot be empty",
+                "search_type": search_type,
+                "query": query
+            }
+        
+        #validate search type
+        if search_type not in valid_search_types:
+            return {
+                "success": False,
+                "error": f"Invalid search type. Must be one of: {','.join(valid_search_types)}",
+                "search_type": search_type,
+                "query": query
+            }
+        
+        #validate limit (Spotify allows 1-50)
+        if not isinstance(limit, int) or limit < 1 or limit > 50:
+            return {
+                "success": False,
+                "error": "Limit must be an integer between 1 and 50",
+                "search_type": search_type,
+                "query": query
+            }
+        
+        #valid offset
+        if not isinstance(offset, int) or offset < 0:
+            return {
+                "success": False,
+                "error": "Offset must be a non-negative integer",
+                "search_type": search_type,
+                "query": query
+            }
+        
+        # Building the request
+        # Standardized return format
+        # Error handling 
     
     ###############################################################
     ### PARAMETERS:  artist_name (string)
