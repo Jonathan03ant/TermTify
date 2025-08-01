@@ -1,15 +1,26 @@
 import requests, base64, os, secrets, hashlib
-from dotenv import load_dotenv
-from flask import Flask, redirect, request
+
 
 class Search:
     def __init__(self, token):
         self.token = token
+        
+    """
+    Function: universal search api that directly maps to spotify's /search endpoint
+    Returns: standardize json format
+
+        @query: the search item to search ("name", "song name", "album"....)
+        @search_type: what to search for ("artist", "album", "playlist"...)
+        @limit: number of results, default at 20
+        @offset: pagination, default to 0
+    """    
+    def search(self, query, search_type, limit=10, offset=0, market=None):
     
     ###############################################################
     ### PARAMETERS:  artist_name (string)
     ### RETURN:      id
     ### PURPOSE:     Get the artist id from the artist name
+    ### https://developer.spotify.com/documentation/web-api/reference/search
     ###############################################################
     def get_artist_id(self, artist_name):
         artist_data = self.get_artist_MetaData(artist_name)
@@ -148,7 +159,7 @@ class Search:
             print(e)
             return None
         tracks = res.json()['tracks']['items']
-        if len(tracks) == 0
+        if len(tracks) == 0:
             print("Track not found")
             return None
         return tracks[0]['id']
