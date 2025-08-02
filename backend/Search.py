@@ -94,8 +94,23 @@ class Search:
             # Parse the reponse
             data = response.json()
             if search_type in data:
-                raw_data = data[search_type]["items"]
+                raw_data_items = data[search_type]["items"]
                 total = data[search_type]["total"]
+                
+                for items in raw_data_items:
+                    result_item = {
+                        "id": raw_data_items.get["id"],          # Spotify id for search_type
+                        "uri": raw_data_items.get["uri"],        # Spotify URI, used for playing: spotify:track:uri
+                        "name": raw_data_items.get["name"],
+                        "type": raw_data_items.get["type"],
+                        
+                        #URLs for Linking
+                        "spotify_url": raw_data_items.get("external_urls", {}).get("spotify"),
+                        "preview_url": raw_data_items.get("preview_url"),
+                        
+                        #rawData if we want the rawdata it self
+                        "raw": raw_data_items
+                    }
                 
                 #Building the result for our return type
     
