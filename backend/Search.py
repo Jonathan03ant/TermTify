@@ -88,7 +88,8 @@ class Search:
                     "success": False,
                     "error": f"Spotify Api Error{response.status_code}",
                     "search_type": search_type,
-                    "query": query
+                    "query": query,
+                    "result": []
                 }
                    
             # Parse the reponse
@@ -97,20 +98,55 @@ class Search:
                 raw_data_items = data[search_type]["items"]
                 total = data[search_type]["total"]
                 
-                for items in raw_data_items:
+                result = []
+                #base response for all search types
+                for item in raw_data_items:
                     result_item = {
-                        "id": raw_data_items.get["id"],          # Spotify id for search_type
-                        "uri": raw_data_items.get["uri"],        # Spotify URI, used for playing: spotify:track:uri
-                        "name": raw_data_items.get["name"],
-                        "type": raw_data_items.get["type"],
+                        "id": item.get("id"),          # Spotify id for search_type
+                        "uri": item.get("uri"),        # Spotify URI, used for playing: spotify:track:uri
+                        "name": item.get("name"),
+                        "type": item.get("type"),
                         
                         #URLs for Linking
-                        "spotify_url": raw_data_items.get("external_urls", {}).get("spotify"),
-                        "preview_url": raw_data_items.get("preview_url"),
+                        "spotify_url": item.get("external_urls", {}).get("spotify"),
+                        "preview_url": item.get("preview_url"),
                         
                         #rawData if we want the rawdata it self
-                        "raw": raw_data_items
+                        "raw": item
                     }
+                    
+                    #type specific results
+                    ##searchtype==track
+                    if search_type == "tracks":
+                        result_item.update({
+                            "track_name": item.get("name"),
+                            "artists": [
+                                {
+                                    "name": artists.get("name"),
+                                    "id": artists.get("id")
+                                }
+                                for artists in item.get("artists", [])    
+                            ],
+                            "artist_names": ", ".join([artists.get("name", "") for artists in item.get("artists", [])]),
+                            "album": {
+                                "name": item.get("album", {}).get("name"),
+                                "id": item.get("album", {}).get("id"),
+                                "uri": item.get("album", {}).get("uri"),
+                                "release_date": item.get("album", {}).get("release_date")
+                            } 
+                        })
+                
+                        
+                    ##searchtype=artists
+                    ##searchtype=albums
+                    ##playlists
+                    
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False, 
+                "error": f"Network error: {str(e)}", 
+                "result": []
+            }
                 
                 #Building the result for our return type
     
