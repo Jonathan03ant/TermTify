@@ -1,4 +1,4 @@
-import requests, base64, os, secrets, hashlib
+import requests
 
 
 class Search:
@@ -16,7 +16,7 @@ class Search:
     """    
     def search(self, query, search_type, limit=10, offset=0, market=None):
         # Input validation
-        valid_search_types = ["artist", "track", "album", "playlist", "show", "episode"]
+        valid_search_types = ["artists", "tracks", "albums", "playlists", "shows", "episodes"]
         
         #validate query
         if not query or not query.strip():
@@ -24,7 +24,8 @@ class Search:
                 "success": False,
                 "error": "Query cannot be empty",
                 "search_type": search_type,
-                "query": query
+                "query": query,
+                "result": []
             }
         
         #validate search type
@@ -33,7 +34,8 @@ class Search:
                 "success": False,
                 "error": f"Invalid search type. Must be one of: {','.join(valid_search_types)}",
                 "search_type": search_type,
-                "query": query
+                "query": query,
+                "result": []
             }
         
         #validate limit (Spotify allows 1-50)
@@ -42,7 +44,8 @@ class Search:
                 "success": False,
                 "error": "Limit must be an integer between 1 and 50",
                 "search_type": search_type,
-                "query": query
+                "query": query,
+                "result": []
             }
         
         #valid offset
@@ -51,12 +54,50 @@ class Search:
                 "success": False,
                 "error": "Offset must be a non-negative integer",
                 "search_type": search_type,
-                "query": query
+                "query": query,
+                "result": []
             }
         
         # Building the request
-        # Standardized return format
-        # Error handling 
+        url = 'https://api.spotify.com/v1/search'
+        headers = {
+            "Authorization": f'Bearer {self.token}'
+        }
+        params = {
+            "q": query,
+            "type": search_type,
+            "limit": limit,
+            "offset": offset
+        }
+        
+        if market:
+            params["market"] = market
+            
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            
+            if response.status_code == 401:
+                return {
+                    "success": False,
+                    "error": "request.get(search) == 401! \nToken might have expired or is invalid.",
+                    "search_type": search_type,
+                    "query": query
+                }
+            elif response.status_code != 200:
+                return {
+                    "success": False,
+                    "error": f"Spotify Api Error{response.status_code}",
+                    "search_type": search_type,
+                    "query": query
+                }
+                   
+            # Parse the reponse
+            data = response.json()
+            if search_type in data:
+                raw_data = data[search_type]["items"]
+                total = data[search_type]["total"]
+                
+                #Building the result for our return type
     
     ###############################################################
     ### PARAMETERS:  artist_name (string)
