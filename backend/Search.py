@@ -138,6 +138,7 @@ class Search:
                                 "release_date": item.get("album", {}).get("release_date")
                             },
                             "duration_ms": item.get("duration_ms"), 
+                            "explicit": item.get("explicit", True)
                         })
                 
                     ##searchtype=albums
@@ -177,8 +178,34 @@ class Search:
                             "public": item.get("public", False),
                             "images": item.get("images", [])
                         })
+                    
+                    ##shows
+                    elif search_type == "shows":
+                        result_items.update({
+                            "show_name": item.get("name"),
+                            "publisher": item.get("publisher"),
+                            "description": item.get("description"),
+                            "languages": item.get("languages", []),
+                            "explicit": item.get("explicit", False),
+                            "images": item.get("images", [])
+                        })
+                        
+                    ##episodes
+                    elif search_type == "episodes":
+                        result_items.update({
+                            "episode_name": item.get("name"),
+                            "description": item.get("description"),
+                            "duration_ms": item.get("duration_ms"),
+                            "release_date": item.get("release_date"),
+                            "explicit": item.get("explicit", False),
+                            "images": item.get("images", []),
+                            "show": {
+                                "name": item.get("show", {}).get("name"),
+                                "id": item.get("show", {}).get("id")
+                            }
+                        })
                     result.append(result_items)
-                return{
+                return {
                     "success": True,
                     "search_type": search_type,
                     "query": query,
@@ -202,4 +229,3 @@ class Search:
                 "search_type": search_type,
                 "result": []
             }
-    ``
