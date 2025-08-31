@@ -69,7 +69,15 @@ class Search:
             "limit": limit,
             "offset": offset
         }
-        
+        type_map = {
+            "artists": "artist",
+            "tracks": "track",
+            "albums": "album",
+            "playlists": "playlist",
+            "shows": "show",
+            "episodes": "episode"
+        }
+        params["type"] = type_map.get(search_type, search_type)
         if market:
             params["market"] = market
             
