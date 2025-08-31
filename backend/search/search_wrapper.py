@@ -19,6 +19,7 @@ class Search:
         valid_search_types = ["artists", "tracks", "albums", "playlists", "shows", "episodes"]
         
         #validate query
+        #Empty Query
         if not query or not query.strip():
             return {
                 "success": False,
@@ -29,7 +30,8 @@ class Search:
             }
         
         #validate search type
-        if search_type not in valid_search_types:
+        #Empty/wrong search_type
+        if not search_type or search_type not in valid_search_types:
             return {
                 "success": False,
                 "error": f"Invalid search type. Must be one of: {','.join(valid_search_types)}",
@@ -78,9 +80,15 @@ class Search:
             "episodes": "episode"
         }
         params["type"] = type_map.get(search_type, search_type)
+        
         if market:
             params["market"] = market
-            
+        
+        """
+            This block sends the request, and acquires the response 
+            if response.status_code(401, !200) return == generic(false) and empty result
+            if not parse the response and return == geric(true) with result list
+        """    
         try:
             response = requests.get(url, headers=headers, params=params)
             
@@ -110,6 +118,8 @@ class Search:
                 result = []
                 for item in raw_data_items:
                     #1. Build base result_item (universal fields) for all search_types
+                    if item is None:
+                        continue
                     result_items = {
                         "id": item.get("id"),          # Spotify id for search_type
                         "uri": item.get("uri"),        # Spotify URI, used for playing: spotify:track:uri
