@@ -1,10 +1,16 @@
-from backend import Player, Search
+# Import Player and Search from the root backend.py file
+import importlib.util
+backend_spec = importlib.util.spec_from_file_location("backend_module", "backend.py")
+backend_module = importlib.util.module_from_spec(backend_spec)
+backend_spec.loader.exec_module(backend_module)
+Player = backend_module.Player
+Search = backend_module.Search
 
 # Import Auth from the backend/Auth.py file
-import importlib.util
-spec = importlib.util.spec_from_file_location("Auth", "backend/Auth.py")
-auth_module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(auth_module)
+auth_spec = importlib.util.spec_from_file_location("Auth", "backend/Auth.py")
+auth_module = importlib.util.module_from_spec(auth_spec)
+auth_spec.loader.exec_module(auth_module)
+Auth = auth_module.Auth
 Auth = auth_module.Auth
 
 # Global variable to store the token
