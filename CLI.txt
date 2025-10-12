@@ -1,0 +1,50 @@
+## Search For Artists (Artist focus)
+
+* tmfy search -ar Jay-z 
+    - Focus to specific ar
+* tmfy search albums
+    - drops(prints on CLI) Focus Albums (#number - name of album (year), limit 10)
+    - Formats will be
+        #number Album-Title, Artist-Name, Date of release
+    - Examples
+        #1 4:44, Jay-Z July7-2017
+        #2 The Black Album, Jay-Z, Nov14, 2003
+        #3 The Blueprint (Explicit), Jay-Z, Sep11, 2001
+once we searched an album, we could do two things
+1. Play the album
+* tmfy play #1 (no shuff)
+* tmfy play #1 -sf (with shuffel) 
+    -> this plays album number 1 with or without shuffel, we can play any number 
+
+2. Search the album it self
+* tmfy -tr #1
+    - drops(prints on CLI) tracks of #number albums (all in sequence) (selected)
+    - Formats will be
+        #number Track-Title, Artist name and Ft (if any), length
+    - Examples
+        #1 Kill Jay Z, Jay-Z, 2:54
+        #2 The Story of O.J., Jay-Z, 3:50   
+        #3 Smile, Jay-Z, Gloria Carter, 4:48
+* tmfy play #1 (plays track 1)
+* tmfy play #2 (plays track 2)
+
+## Search For Albums (Album Focused)
+
+* tmfy search -al 4:44
+* tmfy search -al 4:44 Jay-Z
+* tmfy search -al Jay-Z 4:44
+(all should do the same thing)
+    - Focuses to specific Album, same as when we search for albums after Artist focus
+    - Should do exactly the same thing as tmfy search albums after artist focus
+
+
+## Search for Tracks (Focus is not important here)
+
+* tmfy search -tr Jay-Z
+    - Drops (Prints on CLI) Relevant tracks exactly like the printing an album format (limit 10)
+* tmfy play #1,2...
+
+* tmfy search Jay-Z -tr Smile
+    - Drops or prints the searched track (5 limits), with same format
+* tmfy play #1,2....
+
